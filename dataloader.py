@@ -5,15 +5,17 @@ import torch
 
 data_folder = 'data/stackoverflow'
 
-PAD = 1
-UNK = 2
-START = 3
-END = 4
+PAD = 0
+UNK = 1
+START = 2
+END = 3
 
 desc2num = {"UNK": UNK, "CODE_START": START, "CODE_END": END}
 code2num = {"UNK": UNK, "CODE_START": START, "CODE_END": END}
-num2desc = {PAD: "UNK", UNK: "UNK", START: "CODE_START", END: "CODE_END"}
-num2code = {UNK: "UNK", START: "CODE_START", END: "CODE_END"}
+num2desc = {PAD: "PAD", UNK: "UNK", START: "CODE_START", END: "CODE_END"}
+num2code = {PAD: "PAD", UNK: "UNK", START: "CODE_START", END: "CODE_END"}
+
+SIZE = 200
 
 
 def skipComment(line):
@@ -65,11 +67,11 @@ def buildVocab(filename):
         code_tokens.update(tokenizeCode(code))
         desc_tokens.update(tokenizeDescription(desc))
 
-    code_count = 5
-    desc_count = 5
+    code_count = 4
+    desc_count = 4
 
     for tok in code_tokens:
-        if code_tokens[tok] > 3:
+        if code_tokens[tok] > 2:
             code2num[tok] = code_count
             num2code[code_count] = tok
             code_count += 1
@@ -77,7 +79,7 @@ def buildVocab(filename):
             code2num[tok] = UNK
 
     for tok in desc_tokens:
-        if desc_tokens[tok] > 3:
+        if desc_tokens[tok] > 2:
             desc2num[tok] = desc_count
             num2desc[desc_count] = tok
             desc_count += 1
@@ -108,10 +110,6 @@ def tokenizeData(filename):
                 code2num[tok] = UNK
             code_num.append(code2num[tok])
 
-        l = len(code_num)
-        for i in range(400 - l):
-            code_num.append(1)
-
         desc_num.append(desc2num["CODE_START"])
         for tok in desc_tokens:
             if tok not in desc2num:
@@ -119,10 +117,6 @@ def tokenizeData(filename):
             desc_num.append(desc2num[tok])
 
         desc_num.append(desc2num["CODE_END"])
-
-        l = len(desc_num)
-        for i in range(400 - l):
-            desc_num.append(1)
 
         dataset.append((code_num, desc_num))
     return dataset
