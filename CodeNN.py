@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 data_folder = 'data/stackoverflow'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
+BATCH_SIZE = 50
 class Encoder(nn.Module):
     def __init__(self, vocab_size, output_size):
         super(Encoder, self).__init__()
@@ -34,18 +34,18 @@ class Decoder(nn.Module):
         self.W = nn.Linear(hidden_size, output_size)
 
     def forward(self, prev_input, prev_hidden, encoder_outputs):
-        input = self.embedding(prev_input).view(1, -1, self.hidden_size)
+        input = self.embedding(prev_input).view(BATCH_SIZE, -1, self.hidden_size)
         input = self.dropout(input)
 
         if prev_hidden:
             output, hidden = self.lstm(input, prev_hidden)
         else:
             output, hidden = self.lstm(input)
-        alpha = encoder_outputs.bmm(hidden[0].view(-1, self.hidden_size, 1))
+        alpha = encoder_outputs.bmm(hidden[0].view(BATCH_SIZE, self.hidden_size, 1))
         alpha = F.softmax(alpha, 1).view(1, 1, -1)
         t = alpha.bmm(encoder_outputs).view(-1, self.hidden_size)
 
-        h_att = self.tanh(self.W1(hidden[0].view(-1, self.hidden_size)) + self.W2(t))
+        h_att = self.tanh(self.W1(hidden[0].view(BATCH_SIZE, self.hidden_size)) + self.W2(t))
         h_att = self.dropout(h_att)
         y = self.W(h_att)
         pred = F.log_softmax(y, dim=-1)
@@ -121,7 +121,7 @@ def test(encoder, decoder, dataloader):
 
 
 if __name__ == '__main__':
-    dataloader = DataLoader(myDataset('data/stackoverflow/python/train.txt'), batch_size=1)
+    dataloader = DataLoader(myDataset('data/stackoverflow/python/train.txt'), batch_size=BATCH_SIZE)
     encoder = Encoder(code_count, SIZE).to(device=device)
     decoder = Decoder(SIZE, desc_count).to(device=device)
     train(encoder, decoder, dataloader)

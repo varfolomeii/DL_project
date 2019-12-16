@@ -94,6 +94,8 @@ code_count, desc_count = buildVocab('data/stackoverflow/python/train.txt')
 
 def tokenizeData(filename):
     dataset = []
+    max_length_code = 0
+    max_length_desc = 0
     for line in open(filename, 'r'):
 
         if len(line.strip().split('\t')) < 4:
@@ -110,6 +112,8 @@ def tokenizeData(filename):
                 code2num[tok] = UNK
             code_num.append(code2num[tok])
 
+        if len(code_num) > max_length_code:
+            max_length_code = len(code_num)
         desc_num.append(desc2num["CODE_START"])
         for tok in desc_tokens:
             if tok not in desc2num:
@@ -118,7 +122,15 @@ def tokenizeData(filename):
 
         desc_num.append(desc2num["CODE_END"])
 
+        if len(desc_num) > max_length_desc:
+            max_length_desc = len(desc_num)
         dataset.append((code_num, desc_num))
+
+    for code_num, desc_num in dataset:
+        for i in range(max_length_code - len(code_num)):
+            code_num.append(0)
+        for i in range(max_length_desc - len(desc_num)):
+            desc_num.append(0)
     return dataset
 
 
