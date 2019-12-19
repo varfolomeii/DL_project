@@ -15,7 +15,7 @@ code2num = {"UNK": UNK, "CODE_START": START, "CODE_END": END}
 num2desc = {PAD: "PAD", UNK: "UNK", START: "CODE_START", END: "CODE_END"}
 num2code = {PAD: "PAD", UNK: "UNK", START: "CODE_START", END: "CODE_END"}
 
-SIZE = 200
+SIZE = 400
 
 
 def skipComment(line):
