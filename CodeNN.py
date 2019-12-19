@@ -65,10 +65,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     decoder_optimizer = torch.optim.SGD(decoder.parameters(), lr=lr)
     criterion = nn.NLLLoss()
     losses = []
-<<<<<<< HEAD
     meteors = []
-=======
->>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
     best_meteor = -1
     encoder_dict = {}
     decoder_dict = {}
@@ -91,7 +88,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
             for i in range(1, target_length):
                 decoder_output, hidden = decoder(decoder_input, hidden, encoder_outputs)
                 loss += criterion(decoder_output, target_tensor[:, i])
-                decoder_input = decoder_output.argmax(-1).view(-1)
+                decoder_input = target_tensor[:, i]
 
             epoch_loss.append(loss.view(1).item())
             if j % 20 == 0:
@@ -116,10 +113,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
                 pass
         score /= n
         print('METEOR: {}'.format(score))
-<<<<<<< HEAD
         meteors.append(score)
-=======
->>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
         if best_meteor == -1 or score > best_meteor:
             best_meteor = score
             encoder_dict = encoder.state_dict()
@@ -135,18 +129,15 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     plt.ylabel('NLLLoss')
     plt.grid()
     plt.show()
-    f.savefig('plot.pdf')
+    f.savefig('plot1.pdf')
 
-<<<<<<< HEAD
     f = plt.figure()
     plt.plot(range(len(meteors)), meteors)
     plt.xlabel('epoch_num')
     plt.ylabel('Meteor_score')
     plt.grid()
     plt.show()
-    f.savefig('meteor.pdf')
-=======
->>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
+    f.savefig('meteor1.pdf')
     return encoder_dict, decoder_dict
 
 
@@ -247,10 +238,10 @@ if __name__ == '__main__':
     encoder = Encoder(code_count, SIZE).to(device=device)
     decoder = Decoder(SIZE, desc_count).to(device=device)
     e_dict, d_dict = train(encoder, decoder, dataloader, val_dataloader)
-    torch.save(e_dict, './Encoder')
-    torch.save(d_dict, './Decoder')
-    encoder.load_state_dict(torch.load('./Encoder'))
-    decoder.load_state_dict(torch.load('./Decoder'))
+    torch.save(e_dict, './Encoder1')
+    torch.save(d_dict, './Decoder1')
+    encoder.load_state_dict(torch.load('./Encoder1'))
+    decoder.load_state_dict(torch.load('./Decoder1'))
     encoder.eval()
     decoder.eval()
     test_dataloader = DataLoader(myDataset('data/stackoverflow/python/test.txt'), batch_size=1)
