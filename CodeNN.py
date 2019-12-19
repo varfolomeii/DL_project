@@ -65,7 +65,10 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     decoder_optimizer = torch.optim.SGD(decoder.parameters(), lr=lr)
     criterion = nn.NLLLoss()
     losses = []
+<<<<<<< HEAD
     meteors = []
+=======
+>>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
     best_meteor = -1
     encoder_dict = {}
     decoder_dict = {}
@@ -113,7 +116,10 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
                 pass
         score /= n
         print('METEOR: {}'.format(score))
+<<<<<<< HEAD
         meteors.append(score)
+=======
+>>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
         if best_meteor == -1 or score > best_meteor:
             best_meteor = score
             encoder_dict = encoder.state_dict()
@@ -131,6 +137,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     plt.show()
     f.savefig('plot.pdf')
 
+<<<<<<< HEAD
     f = plt.figure()
     plt.plot(range(len(meteors)), meteors)
     plt.xlabel('epoch_num')
@@ -138,6 +145,8 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     plt.grid()
     plt.show()
     f.savefig('meteor.pdf')
+=======
+>>>>>>> 248351816240df2eb40e4fe847c4f09445646f72
     return encoder_dict, decoder_dict
 
 
