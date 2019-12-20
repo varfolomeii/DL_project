@@ -63,6 +63,8 @@ class Decoder(nn.Module):
 def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     encoder_optimizer = torch.optim.SGD(encoder.parameters(), lr=lr)
     decoder_optimizer = torch.optim.SGD(decoder.parameters(), lr=lr)
+    # encoder_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(encoder_optimizer, factor=0.8)
+    # decoder_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(decoder_optimizer, factor=0.8)
     criterion = nn.NLLLoss()
     losses = []
     meteors = []
@@ -85,7 +87,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
 
             loss = 0
             hidden = None
-            for i in range(1, target_length):
+            for i in range(1, 21):
                 decoder_output, hidden = decoder(decoder_input, hidden, encoder_outputs)
                 loss += criterion(decoder_output, target_tensor[:, i])
                 decoder_input = target_tensor[:, i]
@@ -96,6 +98,8 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
             loss.backward()
             encoder_optimizer.step()
             decoder_optimizer.step()
+            # encoder_scheduler.step(epoch_loss[-1])
+            # decoder_scheduler.step(epoch_loss[-1])
         encoder.eval()
         decoder.eval()
         n = 0
@@ -129,7 +133,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     plt.ylabel('NLLLoss')
     plt.grid()
     plt.show()
-    f.savefig('plot1.pdf')
+    f.savefig('plot2.pdf')
 
     f = plt.figure()
     plt.plot(range(len(meteors)), meteors)
@@ -137,7 +141,7 @@ def train(encoder, decoder, dataloader, val_dataloader, num_epochs=60, lr=0.5):
     plt.ylabel('Meteor_score')
     plt.grid()
     plt.show()
-    f.savefig('meteor1.pdf')
+    f.savefig('meteor2.pdf')
     return encoder_dict, decoder_dict
 
 
@@ -155,9 +159,13 @@ def test(encoder, decoder, dataloader):
             n += 1
         except Exception:
             pass
-        if j % 200 == 0:
-            print(a)
-            print(b)
+        input_text = []
+        for i in range(input_tensor.shape[1]):
+            input_text.append(num2code[input_tensor[:, i].view(1).item()])
+            if input_text[-1] == 'PAD':
+                break
+        print(' '.join(input_text[1:-1]))
+        print(a)
     score /= n
     print('METEOR: {}'.format(score))
 
@@ -218,7 +226,22 @@ def beam_decode(decoder, decoder_input, encoder_outputs):
     return output
 
 
-def predict(encoder, decoder, input, target):
+def greedy_decode(decoder, decoder_input, encoder_outputs):
+    output = []
+    output.append('CODE_START')
+    hidden = None
+    for i in range(20):
+        decode_output, hidden = decoder(decoder_input, hidden, encoder_outputs)
+        output.append(num2desc[decoder_input.argmax(-1).view(1).item()])
+        decoder_input = decoder_input.argmax(-1).view(1)
+        if output[-1] == 'CODE_END':
+            break
+    if output[-1] != 'CODE_END':
+        output.append('CODE_END')
+    return output
+
+
+def predict(encoder, decoder, input, target, is_need_beam=True):
     encoder_outputs = encoder(input)
     decoder_input = target[:, 0]
 
@@ -227,7 +250,10 @@ def predict(encoder, decoder, input, target):
         target_text.append(num2desc[target[:, i].item()])
         if target_text[-1] == 'CODE_END':
             break
-    ans = beam_decode(decoder, decoder_input, encoder_outputs)
+    if is_need_beam:
+        ans = beam_decode(decoder, decoder_input, encoder_outputs)
+    else:
+        ans = greedy_decode(decoder, decoder_input, encoder_outputs)
 
     return ' '.join(ans[1:-1]), ' '.join(target_text[1:-1])
 
